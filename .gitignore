@@ -1,4 +1,5 @@
 node_modules/
 .git/
-init.png
 config.json
+init.png
+temperature.png

@@ -19,6 +19,7 @@ function buildLedMatrixOptions(options) {
 
 const { logo, ledMatrix, weather } = config;
 
+// generate init image
 fs.writeFileSync(
   'init.png',
   text2png(config.initMessage, {
@@ -31,10 +32,7 @@ fs.writeFileSync(
 );
 
 const cmdDisplayLogo = `sudo ${ledMatrix.path}/led-image-viewer ${logo} -w2 ./init.png -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-exec(cmdDisplayLogo, puts);
-
 // console.log(cmdDisplayLogo);
-// runCommand(`sudo ./demo --led-rows=32 --led-chain=2 -t 60 -m 25 -D 1 "+disp+" --led-no-hardware-pulse --led-gpio-mapping=adafruit-hat`, 2000);
 
 const weatherUrl = `http://api.openweathermap.org/data/2.5/weather?zip=${weather.city}&units=${weather.unit}&appid=${weather.openWeatherMapApi}`
 
@@ -62,7 +60,7 @@ request(weatherUrl, (err, response, body) => {
   fs.writeFileSync(
     'temperature.png',
     text2png(weatherText, {
-      font: '180px sans-serif',
+      font: '300px sans-serif',
       textColor: 'blue',
       lineSpacing: 10,
       padding: 20,
@@ -71,5 +69,5 @@ request(weatherUrl, (err, response, body) => {
   );
 
   const cmdDisplayWeather = `sudo ${ledMatrix.path}/led-image-viewer ./temperature.png -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-  exec(cmdDisplayWeather, puts);
+  exec(`${cmdDisplayLogo} && ${cmdDisplayWeather}`, puts);
 });
