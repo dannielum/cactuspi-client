@@ -1,8 +1,8 @@
 {
   "logo": "./cactuspi.png",
-  "initMessage": "          Hello Cactus Pi 🌵 ...          ",
+  "initMessage": "          Hello Cactus Pi ...          ",
   "ledMatrix": {
-    "path": "/home/pi/Documents/projects/led-matrix/rpi-rgb-led-matrix",
+    "path": "/home/pi/Documents/projects/led-matrix/rpi-rgb-led-matrix/utils",
     "options": {
       "ledGpioMapping": "adafruit-hat",
       "ledNoHardwarePulse": true,
