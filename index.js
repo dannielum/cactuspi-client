@@ -55,19 +55,19 @@ request(weatherUrl, (err, response, body) => {
     unit = 'F';
   }
   const temperature = `${Math.round(result.main.temp)}°${unit}`;
-  console.log('temperature', temperature);
+  console.log('temperature', temperature, result.weather[0].icon);
   
   fs.writeFileSync(
     'temperature.png',
     text2png(temperature, {
-      font: '300px sans-serif',
-      textColor: 'blue',
-      lineSpacing: 10,
-      padding: 20,
+      font: '200px sans-serif',
+      textColor: 'red',
+      lineSpacing: 5,
+      padding: 5,
       output: 'buffer'
     })
   );
 
-  const cmdDisplayWeather = `sudo ${ledMatrix.path}/led-image-viewer -f -w3 ./temperature.png ./icons/weather/${result.weather.icon}.png ${buildLedMatrixOptions(ledMatrix.options)}`;
+  const cmdDisplayWeather = `sudo ${ledMatrix.path}/led-image-viewer -f -w3 ./temperature.png -C ./icons/weather/${result.weather[0].icon}.png -C ${buildLedMatrixOptions(ledMatrix.options)}`;
   exec(`${cmdDisplayLogo} && ${cmdDisplayWeather}`, puts);
 });
