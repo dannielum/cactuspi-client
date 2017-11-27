@@ -22,14 +22,14 @@ fs.writeFileSync(
   'init.png',
   text2png(config.initMessage, {
     font: '60px Arial',
-    textColor: 'teal',
+    textColor: 'green',
     lineSpacing: 10,
     padding: 20,
     output: 'buffer'
   })
 );
 
-const cmdDisplayLogo = `sudo ${ledMatrix.path}/led-image-viewer ${logo} -t2 ${buildLedMatrixOptions(ledMatrix.options)}`;
+const cmdDisplayLogo = `sudo ${ledMatrix.path}/led-image-viewer ${logo} -w2 ./init.png -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
 exec(cmdDisplayLogo, puts);
 
 console.log(cmdDisplayLogo);

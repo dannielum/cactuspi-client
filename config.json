@@ -1,6 +1,6 @@
 {
   "logo": "./cactuspi.png",
-  "initMessage": "          Hello Cactus Pi ...          ",
+  "initMessage": "CactusPi",
   "ledMatrix": {
     "path": "/home/pi/Documents/projects/led-matrix/rpi-rgb-led-matrix/utils",
     "options": {
