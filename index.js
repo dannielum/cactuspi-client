@@ -54,12 +54,12 @@ request(weatherUrl, (err, response, body) => {
   } else if (weather.unit === 'imperial') {
     unit = 'F';
   }
-  const weatherText = `${Math.round(result.main.temp)}°${unit}`;
-  console.log('weather', weatherText);
+  const temperature = `${Math.round(result.main.temp)}°${unit}`;
+  console.log('temperature', temperature);
   
   fs.writeFileSync(
     'temperature.png',
-    text2png(weatherText, {
+    text2png(temperature, {
       font: '300px sans-serif',
       textColor: 'blue',
       lineSpacing: 10,
@@ -68,6 +68,6 @@ request(weatherUrl, (err, response, body) => {
     })
   );
 
-  const cmdDisplayWeather = `sudo ${ledMatrix.path}/led-image-viewer ./temperature.png -C ${buildLedMatrixOptions(ledMatrix.options)}`;
+  const cmdDisplayWeather = `sudo ${ledMatrix.path}/led-image-viewer -f -w3 ./temperature.png ./icons/weather/${result.weather.icon}.png ${buildLedMatrixOptions(ledMatrix.options)}`;
   exec(`${cmdDisplayLogo} && ${cmdDisplayWeather}`, puts);
 });
