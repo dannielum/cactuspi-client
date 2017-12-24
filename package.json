@@ -10,7 +10,6 @@
   "author": "Danny Lum",
   "license": "ISC",
   "dependencies": {
-    "request": "^2.83.0",
-    "text2png": "^1.0.1"
+    "request": "^2.83.0"
   }
 }

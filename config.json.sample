@@ -1,8 +1,8 @@
 {
-  "logo": "./cactuspi.png",
-  "initMessage": "Pi",
+  "logo": "./cactuspi.ppm",
+  "initMessage": "Cactus Pi",
   "ledMatrix": {
-    "path": "/home/pi/Documents/projects/led-matrix/rpi-rgb-led-matrix/utils",
+    "path": "/path/to/rpi-rgb-led-matrix",
     "options": {
       "ledGpioMapping": "adafruit-hat",
       "ledNoHardwarePulse": true,
@@ -12,7 +12,7 @@
   },
   "weather": {
     "openWeatherMapApi": "api key",
-    "city": "10301,us",
+    "city": "zip",
     "unit": "metric"
   }
 }
