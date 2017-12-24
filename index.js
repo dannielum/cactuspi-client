@@ -38,7 +38,7 @@ async function run(config) {
       unit = 'F';
     }
     const temperature = `Now: ${Math.round(result.main.temp)}'${unit}. Today ${Math.round(result.main.temp_min)}'${unit} - ${Math.round(result.main.temp_max)}'${unit}.`;
-    const condition = `Forecase: ${result.weather[0].description}. Humidity: ${result.main.humidity}%.`;
+    const condition = `Forecast: ${result.weather[0].description}. Humidity: ${result.main.humidity}%.`;
     const message = `${result.name} - ${temperature} ${condition}`;
 
     generateTextImage({
