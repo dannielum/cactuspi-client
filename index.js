@@ -45,7 +45,7 @@ async function run(config) {
     },
     message: (msg) => {
       console.log('PubNub', msg);
-      q.push((cb) => {
+      q[msg.userMetadata.priority ? 'unshift' : 'push'](cb => {
         return new Promise((resolve, reject) => {
           sendToDisplayPanel({
             message: msg,
@@ -66,7 +66,7 @@ async function run(config) {
   });
 
   q.on('error', function (error, job) {
-    console.error('job fail to execute', error);
+    console.error('job failed to execute', error);
   });
 
   q.start((err) => console.log('queue ended', err));
