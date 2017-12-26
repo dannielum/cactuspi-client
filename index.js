@@ -22,7 +22,7 @@ async function run(config) {
   });
 
   const cmdDisplayLogo = `sudo ${ledMatrix.path}/utils/led-image-viewer ${logo} -w2 ./${initImageFilename} -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-  execCommand(cmdDisplayLogo);
+  q.push(() => execCommand(cmdDisplayLogo));
 
   const pubNub = new PubNub({
     subscribeKey: pubnub.subscribeKey,
@@ -40,11 +40,11 @@ async function run(config) {
         console.log('PubNub', 'connected')
       } else if (statusEvent.category === "PNUnknownCategory") {
         const newState = { new: 'error' };
-        pubNub.setState({ state: newState }, (status) => { console.log('PubNub', statusEvent.errorData.message) });
+        pubNub.setState({ state: newState }, (status) => { console.error('PubNub', statusEvent.errorData.message) });
       }
     },
     message: (msg) => {
-      // console.log('PubNub', msg);
+      console.log('PubNub', msg);
       q.push((cb) => {
         return new Promise((resolve, reject) => {
           sendToDisplayPanel({
@@ -52,11 +52,9 @@ async function run(config) {
             imageFile: `${msg.userMetadata.name}.ppm`,
             ledMatrix
           }).then(res => {
-            console.log('res', res);
             resolve(res);
           }).catch(err => {
-            console.log('err', err);
-            reject(err);
+            resolve(err);
           });
         });
       });
@@ -64,19 +62,26 @@ async function run(config) {
   });
 
   q.on('success', function (result, job) {
-    console.log('job finished processing:', job.toString().replace(/\n/g, ''));
-  })
-  
+    console.log('job finished processing', result);
+  });
+
+  q.on('error', function (error, job) {
+    console.error('job fail to execute', error);
+  });
+
   q.start((err) => console.log('queue ended', err));
 }
 
 function execCommand(cmd) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const child = exec(cmd);
     child.stdout.pipe(process.stdout);
     child.stderr.pipe(process.stderr);
-    child.on('exit', () => {
-      resolve();
+    child.on('exit', (status) => {
+      if (status !== 0) {
+        console.error('command', cmd)
+      }
+      resolve(status);
     });
   });
 }
