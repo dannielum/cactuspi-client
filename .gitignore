@@ -4,3 +4,5 @@ npm-debug.log
 config.json
 init.ppm
 temperature.ppm
+*.ppm
+!cactuspi.ppm

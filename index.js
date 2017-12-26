@@ -6,7 +6,8 @@ const PubNub = require('pubnub');
 const configFile = fs.readFileSync('./config.json');
 const config = JSON.parse(configFile);
 const initImageFilename = 'init.ppm';
-const messageImageFilename = 'temperature.ppm';
+
+let queue = [];
 
 async function run(config) {
   const { logo, initMessage, ledMatrix, pubnub } = config;
@@ -17,6 +18,7 @@ async function run(config) {
   });
 
   const cmdDisplayLogo = `sudo ${ledMatrix.path}/utils/led-image-viewer ${logo} -w2 ./${initImageFilename} -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
+  await execCommand(cmdDisplayLogo);
 
   const pubNub = new PubNub({
     subscribeKey: pubnub.subscribeKey,
@@ -35,30 +37,42 @@ async function run(config) {
       } else if (statusEvent.category === "PNUnknownCategory") {
         const newState = { new: 'error' };
         pubNub.setState({ state: newState }, (status) => { console.log('PubNub', statusEvent.errorData.message) });
-      } 
+      }
     },
-    message: (msg) => {
+    message: async (msg) => {
       console.log('PubNub', msg);
-
-      generateTextImage({
-        text: msg.message,
-        filename: messageImageFilename,
-        ledRows: ledMatrix.options.ledRows
+      queue.push(msg);
+      await sendToDisplayPanel({
+        message: msg,
+        imageFile: `${msg.userMetadata.name}.ppm`,
+        ledMatrix
       });
-    
-      const cmdDisplayWeather = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t 300 -m 25 -D 1 ./${messageImageFilename} ${buildLedMatrixOptions(ledMatrix.options)}`;
-      exec(`${cmdDisplayLogo} && ${cmdDisplayWeather}`, puts);
     }
   });
 }
 
-run(config).then(() => console.log('Done!'));
+run(config).then(() => console.log('Cactus Pi Client Started!'));
 
-function puts(error, stdout, stderr) {
+async function execCommand(cmd) {
+  const { error, stderr } = await exec(cmd);
   if (error) {
     console.error('error', error);
+    console.error('stderr:', stderr);
+    return false;
   }
-  console.log(stdout);
+  return true;
+}
+
+async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
+  generateTextImage({
+    text: message.message,
+    filename: imageFile,
+    ledRows: ledMatrix.options.ledRows
+  });
+
+  const { duration } = message.userMetadata;
+  const cmdDisplayMessage = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t ${duration} -m 25 -D 1 ./${imageFile} ${buildLedMatrixOptions(ledMatrix.options)}`;
+  await execCommand(cmdDisplayMessage);
 }
 
 function generateTextImage({ text, filename, ledRows}) {
