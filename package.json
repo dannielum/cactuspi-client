@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "pubnub": "^4.19.0",
-    "request": "^2.83.0"
+    "queue": "^4.4.2"
   }
 }

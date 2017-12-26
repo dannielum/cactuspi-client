@@ -1,13 +1,17 @@
 const fs = require('fs');
 const { exec, spawnSync } = require('child_process');
-const request = require('request');
 const PubNub = require('pubnub');
+const queue = require('queue');
 
 const configFile = fs.readFileSync('./config.json');
 const config = JSON.parse(configFile);
 const initImageFilename = 'init.ppm';
 
-let queue = [];
+let q = queue();
+q.autostart = true;
+q.concurrency = 1;
+
+run(config).then(() => console.log('Cactus Pi Client Started!'));
 
 async function run(config) {
   const { logo, initMessage, ledMatrix, pubnub } = config;
@@ -18,7 +22,7 @@ async function run(config) {
   });
 
   const cmdDisplayLogo = `sudo ${ledMatrix.path}/utils/led-image-viewer ${logo} -w2 ./${initImageFilename} -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-  await execCommand(cmdDisplayLogo);
+  execCommand(cmdDisplayLogo);
 
   const pubNub = new PubNub({
     subscribeKey: pubnub.subscribeKey,
@@ -39,28 +43,42 @@ async function run(config) {
         pubNub.setState({ state: newState }, (status) => { console.log('PubNub', statusEvent.errorData.message) });
       }
     },
-    message: async (msg) => {
-      console.log('PubNub', msg);
-      queue.push(msg);
-      await sendToDisplayPanel({
-        message: msg,
-        imageFile: `${msg.userMetadata.name}.ppm`,
-        ledMatrix
+    message: (msg) => {
+      // console.log('PubNub', msg);
+      q.push((cb) => {
+        return new Promise((resolve, reject) => {
+          sendToDisplayPanel({
+            message: msg,
+            imageFile: `${msg.userMetadata.name}.ppm`,
+            ledMatrix
+          }).then(res => {
+            console.log('res', res);
+            resolve(res);
+          }).catch(err => {
+            console.log('err', err);
+            reject(err);
+          });
+        });
       });
     }
   });
+
+  q.on('success', function (result, job) {
+    console.log('job finished processing:', job.toString().replace(/\n/g, ''));
+  })
+  
+  q.start((err) => console.log('queue ended', err));
 }
 
-run(config).then(() => console.log('Cactus Pi Client Started!'));
-
-async function execCommand(cmd) {
-  const { error, stderr } = await exec(cmd);
-  if (error) {
-    console.error('error', error);
-    console.error('stderr:', stderr);
-    return false;
-  }
-  return true;
+function execCommand(cmd) {
+  return new Promise((resolve) => {
+    const child = exec(cmd);
+    child.stdout.pipe(process.stdout);
+    child.stderr.pipe(process.stderr);
+    child.on('exit', () => {
+      resolve();
+    });
+  });
 }
 
 async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
@@ -72,7 +90,7 @@ async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
 
   const { duration } = message.userMetadata;
   const cmdDisplayMessage = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t ${duration} -m 25 -D 1 ./${imageFile} ${buildLedMatrixOptions(ledMatrix.options)}`;
-  await execCommand(cmdDisplayMessage);
+  return await execCommand(cmdDisplayMessage);
 }
 
 function generateTextImage({ text, filename, ledRows}) {
