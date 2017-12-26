@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { exec, spawnSync } = require('child_process');
 const request = require('request');
+const PubNub = require('pubnub');
 
 const configFile = fs.readFileSync('./config.json');
 const config = JSON.parse(configFile);
@@ -8,7 +9,7 @@ const initImageFilename = 'init.ppm';
 const messageImageFilename = 'temperature.ppm';
 
 async function run(config) {
-  const { logo, initMessage, ledMatrix, weather } = config;
+  const { logo, initMessage, ledMatrix, pubnub } = config;
   generateTextImage({
     text: initMessage,
     filename: initImageFilename,
@@ -16,39 +17,38 @@ async function run(config) {
   });
 
   const cmdDisplayLogo = `sudo ${ledMatrix.path}/utils/led-image-viewer ${logo} -w2 ./${initImageFilename} -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-
-  const weatherUrl = `http://api.openweathermap.org/data/2.5/weather?zip=${weather.city}&units=${weather.unit}&appid=${weather.openWeatherMapApi}`;
   
-  request(weatherUrl, (err, response, body) => {
-    if (err) {
-      console.error('weather', err);
-      return;
-    }
-    
-    const result = JSON.parse(body);
-    if (result.main === undefined){
-      console.error('weather', 'failed to get weather data, please try again.');
-      return;
-    }
-    
-    let unit = 'K';
-    if (weather.unit === 'metric') {
-      unit = 'C';
-    } else if (weather.unit === 'imperial') {
-      unit = 'F';
-    }
-    const temperature = `Now: ${Math.round(result.main.temp)}'${unit}. Today ${Math.round(result.main.temp_min)}'${unit} - ${Math.round(result.main.temp_max)}'${unit}.`;
-    const condition = `Forecast: ${result.weather[0].description}. Humidity: ${result.main.humidity}%.`;
-    const message = `${result.name} - ${temperature} ${condition}`;
-
-    generateTextImage({
-      text: message,
-      filename: messageImageFilename,
-      ledRows: ledMatrix.options.ledRows
-    });
+  const pubNub = new PubNub({
+    subscribeKey: pubnub.subscribeKey,
+    secretKey: pubnub.secretKey,
+    ssl: true
+  });
   
-    const cmdDisplayWeather = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t 300 -m 25 -D 1 ./${messageImageFilename} ${buildLedMatrixOptions(ledMatrix.options)}`;
-    exec(`${cmdDisplayLogo} && ${cmdDisplayWeather}`, puts);
+  pubNub.subscribe({
+    channels: pubnub.channels
+  });
+  
+  pubNub.addListener({
+    status: function(statusEvent) {
+      if (statusEvent.category === "PNConnectedCategory") {
+        console.log('PubNub', 'connected')
+      } else if (statusEvent.category === "PNUnknownCategory") {
+        const newState = { new: 'error' };
+        pubNub.setState({ state: newState }, (status) => { console.log('PubNub', statusEvent.errorData.message) });
+      } 
+    },
+    message: function(message) {
+      console.log('PubNub', message);
+
+      generateTextImage({
+        text: message.display,
+        filename: messageImageFilename,
+        ledRows: ledMatrix.options.ledRows
+      });
+    
+      const cmdDisplayWeather = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t 300 -m 25 -D 1 ./${messageImageFilename} ${buildLedMatrixOptions(ledMatrix.options)}`;
+      exec(`${cmdDisplayLogo} && ${cmdDisplayWeather}`, puts);
+    }
   });
 }
 

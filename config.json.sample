@@ -1,6 +1,11 @@
 {
   "logo": "./cactuspi.ppm",
   "initMessage": "Cactus Pi",
+  "pubnub": {
+    "subscribeKey": "",
+    "secretKey": "",
+    "channels": ["cactuspi"]
+  },
   "ledMatrix": {
     "path": "/path/to/rpi-rgb-led-matrix",
     "options": {
@@ -9,10 +14,5 @@
       "ledRows": 32,
       "ledChain": 2
     }
-  },
-  "weather": {
-    "openWeatherMapApi": "api key",
-    "city": "zip",
-    "unit": "metric"
   }
 }
