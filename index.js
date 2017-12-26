@@ -17,19 +17,19 @@ async function run(config) {
   });
 
   const cmdDisplayLogo = `sudo ${ledMatrix.path}/utils/led-image-viewer ${logo} -w2 ./${initImageFilename} -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-  
+
   const pubNub = new PubNub({
     subscribeKey: pubnub.subscribeKey,
     secretKey: pubnub.secretKey,
     ssl: true
   });
-  
+
   pubNub.subscribe({
     channels: pubnub.channels
   });
-  
+
   pubNub.addListener({
-    status: function(statusEvent) {
+    status: (statusEvent) => {
       if (statusEvent.category === "PNConnectedCategory") {
         console.log('PubNub', 'connected')
       } else if (statusEvent.category === "PNUnknownCategory") {
@@ -37,11 +37,11 @@ async function run(config) {
         pubNub.setState({ state: newState }, (status) => { console.log('PubNub', statusEvent.errorData.message) });
       } 
     },
-    message: function(message) {
-      console.log('PubNub', message);
+    message: (msg) => {
+      console.log('PubNub', msg);
 
       generateTextImage({
-        text: message.display,
+        text: msg.message,
         filename: messageImageFilename,
         ledRows: ledMatrix.options.ledRows
       });
