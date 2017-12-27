@@ -6,15 +6,17 @@ const queue = require('queue');
 const configFile = fs.readFileSync('./config.json');
 const config = JSON.parse(configFile);
 const initImageFilename = 'init.ppm';
+const { logo, initMessage, ledMatrix, pubnub } = config;
 
 let q = queue();
 q.autostart = true;
 q.concurrency = 1;
 
+let repeatMessage;
+
 run(config).then(() => console.log('Cactus Pi Client Started!'));
 
 async function run(config) {
-  const { logo, initMessage, ledMatrix, pubnub } = config;
   generateTextImage({
     text: initMessage,
     filename: initImageFilename,
@@ -61,27 +63,57 @@ async function run(config) {
     }
   });
 
-  q.on('success', function (result, job) {
-    console.log('job finished processing', result);
+  q.on('success', (message, job) => {
+    console.log('job finished processing', message);
+    if (!message) {
+      return;
+    }
+
+    const { repeat } = message.userMetadata;
+    if (repeat) {
+      repeatMessage = message;
+    }
+
+    loopMessage();
   });
 
-  q.on('error', function (error, job) {
+  q.on('error', (error, job) => {
     console.error('job failed to execute', error);
   });
 
   q.start((err) => console.log('queue ended', err));
 }
 
-function execCommand(cmd) {
+function loopMessage() {
+  if (q.length === 0 && repeatMessage) {
+    q.push(cb => {
+      return new Promise((resolve, reject) => {
+        sendToDisplayPanel({
+          message: repeatMessage,
+          imageFile: `${repeatMessage.userMetadata.name}.ppm`,
+          ledMatrix
+        }).then(res => {
+          resolve(res);
+        }).catch(err => {
+          resolve(err);
+        });
+      });
+    });
+  }
+}
+
+function execCommand(cmd, message) {
   return new Promise((resolve, reject) => {
     const child = exec(cmd);
     child.stdout.pipe(process.stdout);
     child.stderr.pipe(process.stderr);
     child.on('exit', (status) => {
+      let msg = message;
       if (status !== 0) {
-        console.error('command', cmd)
+        console.error('command', cmd);
+        msg = null;
       }
-      resolve(status);
+      resolve(msg);
     });
   });
 }
@@ -95,7 +127,7 @@ async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
 
   const { duration } = message.userMetadata;
   const cmdDisplayMessage = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t ${duration} -m 25 -D 1 ./${imageFile} ${buildLedMatrixOptions(ledMatrix.options)}`;
-  return await execCommand(cmdDisplayMessage);
+  return await execCommand(cmdDisplayMessage, message);
 }
 
 function generateTextImage({ text, filename, ledRows}) {
