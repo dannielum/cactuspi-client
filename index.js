@@ -47,6 +47,25 @@ async function run(config) {
     },
     message: (msg) => {
       console.log('PubNub', msg);
+      const { command } = msg.userMetadata;
+      if (command) {
+        switch (command) {
+          case 'start':
+            q.start((err) => console.log('queue ended', err));
+            break;
+          case 'stop':
+            q.stop();
+            break;
+          case 'end':
+            q.end();
+            break;
+          case 'clear':
+            q.splice(0);
+            break;
+        }
+        return;
+      }
+
       q[msg.userMetadata.priority ? 'unshift' : 'push'](cb => {
         return new Promise((resolve, reject) => {
           sendToDisplayPanel({
