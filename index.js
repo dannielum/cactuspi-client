@@ -49,6 +49,7 @@ async function run(config) {
       console.log('PubNub', msg);
       const { command } = msg.userMetadata;
       if (command) {
+        console.log('command', command);
         switch (command) {
           case 'start':
             q.start((err) => console.log('queue ended', err));
