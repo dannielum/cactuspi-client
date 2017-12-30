@@ -154,7 +154,7 @@ async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
 }
 
 async function displayTime(ledMatrix) {
-  const cmdDisplayClock = `sudo ${ledMatrix.path}/examples-api-use/clock ${ledMatrix.path}/fonts/7x13.bdf -d "%H:%M:%S" ${buildLedMatrixOptions(ledMatrix.options)}`;
+  const cmdDisplayClock = `sudo ${ledMatrix.path}/examples-api-use/clock -f ${ledMatrix.path}/fonts/8x13.bdf -d "%H:%M:%S" ${buildLedMatrixOptions(ledMatrix.options)}`;
   return await execCommand(cmdDisplayClock);
 }
 
