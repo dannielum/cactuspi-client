@@ -14,7 +14,10 @@ q.concurrency = 1;
 
 let repeatMessage;
 
-run(config).then(() => console.log('Cactus Pi Client Started!'));
+run(config).then(() => {
+  console.log('Cactus Pi Client Started!');
+  displayTime(ledMatrix);
+});
 
 async function run(config) {
   generateTextImage({
@@ -146,8 +149,13 @@ async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
   });
 
   const { duration } = message.userMetadata;
-  const cmdDisplayMessage = `sudo ${ledMatrix.path}/examples-api-use/demo --led-rows=32 --led-chain=2 -t ${duration} -m 25 -D 1 ./${imageFile} ${buildLedMatrixOptions(ledMatrix.options)}`;
+  const cmdDisplayMessage = `sudo ${ledMatrix.path}/examples-api-use/demo -t ${duration} -m 25 -D 1 ./${imageFile} ${buildLedMatrixOptions(ledMatrix.options)}`;
   return await execCommand(cmdDisplayMessage, message);
+}
+
+async function displayTime(ledMatrix) {
+  const cmdDisplayClock = `sudo ${ledMatrix.path}/examples-api-use/clock ${ledMatrix.path}/fonts/7x13.bdf -d "%H:%M:%S" ${buildLedMatrixOptions(ledMatrix.options)}`;
+  return await execCommand(cmdDisplayClock);
 }
 
 function generateTextImage({ text, filename, ledRows}) {
