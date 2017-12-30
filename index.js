@@ -13,10 +13,10 @@ q.autostart = true;
 q.concurrency = 1;
 
 let repeatMessage;
+let clockProcess;
 
 run(config).then(() => {
   console.log('Cactus Pi Client Started!');
-  displayTime(ledMatrix);
 });
 
 async function run(config) {
@@ -89,6 +89,7 @@ async function run(config) {
   q.on('success', (message, job) => {
     console.log('job finished processing', message);
     if (!message) {
+      clockProcess = displayTime(ledMatrix);
       return;
     }
 
@@ -108,24 +109,32 @@ async function run(config) {
 }
 
 function loopMessage() {
-  if (q.length === 0 && repeatMessage) {
-    q.push(cb => {
-      return new Promise((resolve, reject) => {
-        sendToDisplayPanel({
-          message: repeatMessage,
-          imageFile: `${repeatMessage.userMetadata.name}.ppm`,
-          ledMatrix
-        }).then(res => {
-          resolve(res);
-        }).catch(err => {
-          resolve(err);
+  if (q.length === 0) {
+    if (repeatMessage) {
+      q.push(cb => {
+        return new Promise((resolve, reject) => {
+          sendToDisplayPanel({
+            message: repeatMessage,
+            imageFile: `${repeatMessage.userMetadata.name}.ppm`,
+            ledMatrix
+          }).then(res => {
+            resolve(res);
+          }).catch(err => {
+            resolve(err);
+          });
         });
       });
-    });
+    } else {
+      clockProcess = displayTime(ledMatrix);
+    }
   }
 }
 
 function execCommand(cmd, message) {
+  if (clockProcess) {
+    clockProcess.kill();
+    clockProcess = null;
+  }
   return new Promise((resolve, reject) => {
     const child = exec(cmd);
     child.stdout.pipe(process.stdout);
@@ -155,7 +164,10 @@ async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
 
 async function displayTime(ledMatrix) {
   const cmdDisplayClock = `sudo ${ledMatrix.path}/examples-api-use/clock -f ${ledMatrix.path}/fonts/8x13.bdf -d "%H:%M:%S" ${buildLedMatrixOptions(ledMatrix.options)}`;
-  return await execCommand(cmdDisplayClock);
+  const child = exec(cmdDisplayClock);
+  child.stdout.pipe(process.stdout);
+  child.stderr.pipe(process.stderr);
+  return child;
 }
 
 function generateTextImage({ text, filename, ledRows}) {
