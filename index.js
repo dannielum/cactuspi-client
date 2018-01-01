@@ -13,7 +13,6 @@ q.autostart = true;
 q.concurrency = 1;
 
 let repeatMessage;
-let clockProcess;
 
 run(config).then(() => {
   console.log('Cactus Pi Client Started!');
@@ -27,7 +26,10 @@ async function run(config) {
   });
 
   const cmdDisplayLogo = `sudo ${ledMatrix.path}/utils/led-image-viewer ${logo} -w2 ./${initImageFilename} -w2 -C ${buildLedMatrixOptions(ledMatrix.options)}`;
-  q.push(() => execCommand(cmdDisplayLogo));
+  q.push(() => execCommand({
+    cmd: cmdDisplayLogo,
+    ledMatrix
+  }));
 
   const pubNub = new PubNub({
     subscribeKey: pubnub.subscribeKey,
@@ -89,7 +91,7 @@ async function run(config) {
   q.on('success', (message, job) => {
     console.log('job finished processing', message);
     if (!message) {
-      clockProcess = displayTime(ledMatrix);
+      displayTime(ledMatrix);
       return;
     }
 
@@ -125,16 +127,14 @@ function loopMessage() {
         });
       });
     } else {
-      clockProcess = displayTime(ledMatrix);
+      displayTime(ledMatrix);
     }
   }
 }
 
-function execCommand(cmd, message) {
-  if (clockProcess) {
-    clockProcess.kill();
-    clockProcess = null;
-  }
+function execCommand({ cmd, message, ledMatrix }) {
+  killProcess(`${ledMatrix.path}/examples-api-use/clock`);
+
   return new Promise((resolve, reject) => {
     const child = exec(cmd);
     child.stdout.pipe(process.stdout);
@@ -159,15 +159,23 @@ async function sendToDisplayPanel({ message, imageFile, ledMatrix }) {
 
   const { duration } = message.userMetadata;
   const cmdDisplayMessage = `sudo ${ledMatrix.path}/examples-api-use/demo -t ${duration} -m 25 -D 1 ./${imageFile} ${buildLedMatrixOptions(ledMatrix.options)}`;
-  return await execCommand(cmdDisplayMessage, message);
+  return await execCommand({
+    cmd: cmdDisplayMessage,
+    message,
+    ledMatrix
+  });
 }
 
-async function displayTime(ledMatrix) {
-  const cmdDisplayClock = `sudo ${ledMatrix.path}/examples-api-use/clock -f ${ledMatrix.path}/fonts/8x13.bdf -d "%H:%M:%S" ${buildLedMatrixOptions(ledMatrix.options)}`;
+function displayTime(ledMatrix) {
+  const cmdDisplayClock = `sudo ${ledMatrix.path}/examples-api-use/clock -f ${ledMatrix.path}/fonts/8x13.bdf -d "%I:%M %p" -y 8 ${buildLedMatrixOptions(ledMatrix.options)}`;
   const child = exec(cmdDisplayClock);
   child.stdout.pipe(process.stdout);
   child.stderr.pipe(process.stderr);
-  return child;
+}
+
+function killProcess(grepPattern) {
+  const cmdKillProcess = `sudo kill $(ps aux | grep '${grepPattern}' | awk '{print $2}')`;
+  exec(cmdKillProcess);
 }
 
 function generateTextImage({ text, filename, ledRows}) {
