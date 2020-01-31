@@ -14,11 +14,11 @@ q.concurrency = 1;
 
 let repeatMessage;
 
-run(config).then(() => {
+run().then(() => {
   console.log('Cactus Pi Client Started!');
 });
 
-async function run(config) {
+async function run() {
   generateTextImage({
     text: initMessage,
     filename: initImageFilename,
@@ -43,15 +43,18 @@ async function run(config) {
 
   pubNub.addListener({
     status: (statusEvent) => {
-      if (statusEvent.category === "PNConnectedCategory") {
-        console.log('PubNub', 'connected')
-      } else if (statusEvent.category === "PNUnknownCategory") {
+      if (statusEvent.category === 'PNConnectedCategory') {
+        console.log('PubNub - statusEvent', statusEvent)
+      } else if (statusEvent.category === 'PNUnknownCategory') {
         const newState = { new: 'error' };
-        pubNub.setState({ state: newState }, (status) => { console.error('PubNub', statusEvent.errorData.message) });
+        pubNub.setState({ state: newState }, (status) => {
+          console.error('PubNub - error message', statusEvent.errorData.message);
+          console.error('PubNub - error status', status);
+        });
       }
     },
     message: (msg) => {
-      console.log('PubNub', msg);
+      console.log('PubNub - message', msg);
       const { command } = msg.userMetadata;
       if (command) {
         console.log('command', command);
@@ -72,8 +75,8 @@ async function run(config) {
         return;
       }
 
-      q[msg.userMetadata.priority ? 'unshift' : 'push'](cb => {
-        return new Promise((resolve, reject) => {
+      q[msg.userMetadata.priority ? 'unshift' : 'push'](() => {
+        return new Promise((resolve) => {
           sendToDisplayPanel({
             message: msg,
             imageFile: `${msg.userMetadata.name}.ppm`,
@@ -111,24 +114,26 @@ async function run(config) {
 }
 
 function loopMessage() {
-  if (q.length === 0) {
-    if (repeatMessage) {
-      q.push(cb => {
-        return new Promise((resolve, reject) => {
-          sendToDisplayPanel({
-            message: repeatMessage,
-            imageFile: `${repeatMessage.userMetadata.name}.ppm`,
-            ledMatrix
-          }).then(res => {
-            resolve(res);
-          }).catch(err => {
-            resolve(err);
-          });
+  if (q.length !== 0) {
+    return;
+  }
+
+  if (repeatMessage) {
+    q.push(cb => {
+      return new Promise((resolve, reject) => {
+        sendToDisplayPanel({
+          message: repeatMessage,
+          imageFile: `${repeatMessage.userMetadata.name}.ppm`,
+          ledMatrix
+        }).then(res => {
+          resolve(res);
+        }).catch(err => {
+          resolve(err);
         });
       });
-    } else {
-      displayTime(ledMatrix);
-    }
+    });
+  } else {
+    displayTime(ledMatrix);
   }
 }
 
@@ -179,7 +184,7 @@ function killProcess(grepPattern) {
 }
 
 function generateTextImage({ text, filename, ledRows}) {
-  const args = ["./generate-image.py", text, filename, ledRows];
+  const args = ['./generate-image.py', text, filename, ledRows];
   return spawnSync('python', args);
 }
 
