@@ -1,9 +1,6 @@
 const PubNub = require('pubnub');
 
 module.exports = class PubNubService {
-  config = {};
-  pubNub = null;
-
   constructor(config) {
     this.config = config;
 

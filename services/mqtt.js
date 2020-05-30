@@ -1,16 +1,13 @@
 const MQTT = require('mqtt');
 
 module.exports = class MqttService {
-  config = {};
-  mqtt = null;
-
   constructor(config) {
     this.config = config;
   }
 
   subscribe(sendMessage, sendCommand) {
     this.mqtt = MQTT.connect(this.config.brokerUrl);
-
+    
     this.mqtt.on('connect', function () {
       this.mqtt.subscribe(this.config.topic, function (err) {
         if (err) {
