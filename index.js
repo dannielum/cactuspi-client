@@ -80,7 +80,7 @@ function sendCommand(command) {
 }
 
 function sendMessage(message) {
-  q[msg.userMetadata.priority ? 'unshift' : 'push'](() => {
+  q[message.userMetadata.priority ? 'unshift' : 'push'](() => {
     return new Promise((resolve) => {
       sendToDisplayPanel({
         message,

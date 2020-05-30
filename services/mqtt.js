@@ -3,13 +3,13 @@ const MQTT = require('mqtt');
 module.exports = class MqttService {
   constructor(config) {
     this.config = config;
+    
+    this.mqtt = MQTT.connect(this.config.brokerUrl);
   }
 
   subscribe(sendMessage, sendCommand) {
-    this.mqtt = MQTT.connect(this.config.brokerUrl);
-    
-    this.mqtt.on('connect', function () {
-      this.mqtt.subscribe(this.config.topic, function (err) {
+    this.mqtt.on('connect', () => {
+      this.mqtt.subscribe(this.config.topic, (err) => {
         if (err) {
           console.log('MQTT - error status', err);
         } else {
@@ -18,15 +18,10 @@ module.exports = class MqttService {
       });
     });
 
-    this.mqtt.on('message', function (topic, message) {
-      console.log('MQTT - message', message);
-      const { command } = message.userMetadata;
-      if (command) {
-        sendCommand(command);
-      } else {
-        sendMessage(message);
-      }
-      console.log(message.toString());
+    this.mqtt.on('message', (topic, buffer) => {
+      const message = JSON.parse(buffer.toString());
+      console.log('MQTT - message', message.message);
+      sendMessage(message);
     });
   }
 };

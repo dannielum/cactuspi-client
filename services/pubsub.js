@@ -3,7 +3,7 @@ const PubNub = require('pubnub');
 module.exports = class PubNubService {
   constructor(config) {
     this.config = config;
-
+    
     this.pubNub = new PubNub({
       subscribeKey: this.config.subscribeKey,
       secretKey: this.config.secretKey,
@@ -16,7 +16,7 @@ module.exports = class PubNubService {
       channels: this.config.channels,
     });
 
-    pubNub.addListener({
+    this.pubNub.addListener({
       status: (statusEvent) => {
         if (statusEvent.category === 'PNConnectedCategory') {
           console.log('PubNub - statusEvent', statusEvent);
