@@ -1,10 +1,15 @@
 {
   "logo": "./cactuspi.ppm",
   "initMessage": "Cactus Pi",
+  "pubsubType": "pubnub",
   "pubnub": {
     "subscribeKey": "",
     "secretKey": "",
     "channels": ["cactuspi"]
+  },
+  "mqtt": {
+    "brokerUrl": "mqtt://homeassistant-url:port",
+    "topic": "homeassistant/cactuspi"
   },
   "ledMatrix": {
     "path": "/path/to/rpi-rgb-led-matrix",
