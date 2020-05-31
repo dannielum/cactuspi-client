@@ -1,13 +1,23 @@
 # Cactus Pi Client #
 A Raspberry Pi client listened to a server/hub to receive messages in order to display messages on a LED matrix display board.
 
+CactusPi start up screen:
+
+[![LED Matrix cactuspi start up screen](http://img.youtube.com/vi/D7HpxsstZxc/0.jpg)](http://www.youtube.com/watch?v=D7HpxsstZxc)
+
+CactusPi displaying bus time:
+
+[![Cactus pi picture frame fetch bus time](http://img.youtube.com/vi/XhUqg26Vov0/0.jpg)](http://www.youtube.com/watch?v=XhUqg26Vov0)
+
 ## Hardware Setup ##
 - Raspberry Pi
 - Adafruit RGB Matrix HAT
 - Adafruit 32x16 RGB LED Matrix
 
+![hardware](./assets/hardware.jpeg "hardware")
+
 ## Instructions ##
-This project is using [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/utils) to render messages on LED Matrix and PubNub for the publish/subscribe service. For more details on how to setup this project, please read https://codeburst.io/creating-a-nodejs-led-matrix-display-framework-with-raspberry-pi-955509baea8c.
+This project is using [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/utils) to render messages on LED Matrix. PubNub or MQTT for the publish/subscribe service. For more details on how to setup this project, please read https://codeburst.io/creating-a-nodejs-led-matrix-display-framework-with-raspberry-pi-955509baea8c.
 
 1. Download [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/utils). You can read more on how to setup `rpi-rgb-led-matrix` [here](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/utils) or follow the instruction below:
 ```
