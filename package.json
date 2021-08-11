@@ -10,6 +10,7 @@
   "author": "Danny Lum",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.966.0",
     "mqtt": "^4.2.8",
     "pubnub": "^4.27.3",
     "queue": "^6.0.1"
