@@ -1,6 +1,6 @@
 {
   "name": "cactuspi-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A raspberry pi client listening on a server to receive message to display on a LED matrix board.",
   "main": "index.js",
   "scripts": {
