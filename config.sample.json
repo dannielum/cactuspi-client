@@ -4,6 +4,7 @@
   "pubsubType": "sqs",
   "sqs": {
     "region": "region",
+    "queue": "cactuspi",
     "topic": "https://sqs.region.amazonaws.com/account/topic"
   },
   "pubnub": {
