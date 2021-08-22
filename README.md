@@ -42,8 +42,8 @@ cd cactuspi-client
 cp config.json.sample config.json
 ```
 4. Open `config.json` and replace the `ledMatrix.path` from `"/path/to/rpi-rgb-led-matrix"` to the path of where you put your `rpi-rgb-led-matrix` directory. It is better to use absolute path than relative path to avoid problem.
-5. Replace the PubNub or MQTT configs in `config.json`.
+5. Replace the SQS, PubNub, or MQTT configs in `config.json`.
 6. Set `pubsubType` to either `pubnub` or `mqtt` in `config.json`.
 
 ## Publisher/Subscriber Service ##
-You can now choose between PubNub and MQTT as your pubsub service. MQTT support is added mainly to integrate it to [Home Assistant](https://www.home-assistant.io/).
+You can now choose between SQS, PubNub, and MQTT as your pubsub service. MQTT support is added mainly to integrate it to [Home Assistant](https://www.home-assistant.io/).

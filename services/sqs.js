@@ -1,8 +1,15 @@
 const { Consumer } = require('sqs-consumer');
+const AWS = require('aws-sdk');
 
 module.exports = class SQSService {
   constructor(config) {
     this.queueUrl = config.topic;
+
+    AWS.config.update({
+      region: config.region,
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    });
   }
 
   subscribe(sendMessage, sendCommand) {
@@ -31,17 +38,17 @@ module.exports = class SQSService {
             userMetadata: metadata,
           });
         }
-      }
+      },
     });
-    
+
     app.on('error', (err) => {
       console.log('SQS - error message', err);
     });
-    
+
     app.on('processing_error', (err) => {
       console.log('SQS - error processing message', err);
     });
-    
+
     app.start();
   }
 };

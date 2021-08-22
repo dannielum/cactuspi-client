@@ -4,6 +4,8 @@
   "pubsubType": "sqs",
   "sqs": {
     "region": "region",
+    "accessKeyId": "",
+    "secretAccessKey": "",
     "topic": "https://sqs.region.amazonaws.com/account/topic"
   },
   "pubnub": {
