@@ -12,7 +12,7 @@
   "dependencies": {
     "aws-sdk": "^2.1354.0",
     "mqtt": "^4.2.8",
-    "pubnub": "^7.4.0",
+    "pubnub": "^8.0.0",
     "queue": "^6.0.1",
     "sqs-consumer": "^5.5.0"
   }
